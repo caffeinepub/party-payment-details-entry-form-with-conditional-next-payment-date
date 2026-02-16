@@ -2,7 +2,15 @@
     <head>
         <meta charset='UTF-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+        <meta name='color-scheme' content='light' />
         <title>Party payment details entry form with conditional next payment date</title>
+        <script>
+            // Force light mode immediately before any React rendering
+            (function() {
+                document.documentElement.classList.remove('dark');
+                document.body.classList.remove('dark');
+            })();
+        </script>
     </head>
     <body>
         <div id='root'></div>

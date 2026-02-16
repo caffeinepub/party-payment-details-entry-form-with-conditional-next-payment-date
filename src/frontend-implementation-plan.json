@@ -1,102 +1,94 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Export (PDF/CSV), print mode, and All Entries search/filter/sort for Party Payment Manager",
+  "title": "Frontend auth gating with Internet Identity login, registration, and biometric-friendly copy",
   "requirements": [
     {
-      "id": "REQ-12",
-      "summary": "Add PDF export in Report view for the currently selected party and currently displayed (filtered) rows.",
+      "id": "REQ-3",
+      "summary": "Gate the existing tabbed app behind an Internet Identity login screen and a post-login registration/authorization screen, including logout.",
       "acceptanceCriteria": [
-        "When a party is selected and there is at least 1 filtered entry, the Report view shows an \"Export PDF\" action.",
-        "Clicking \"Export PDF\" downloads a PDF file that includes: selected party name, generation date/time, and a table of rows with Date, Payment, Next Payment Date, Comments.",
-        "If no party is selected or there are no records, the export action is disabled or shows a clear inline message explaining why export is unavailable.",
-        "The PDF content matches the currently displayed filtered entries (no unfiltered entries included)."
+        "When no Internet Identity session is present, the main app tabs are not shown; a login page is shown with a clear call-to-action to sign in.",
+        "After successful Internet Identity login, if backend authorization indicates the user is not yet an app user, the UI prompts for registration and can complete registration without manual URL tokens.",
+        "After registration completes successfully, the existing app UI (tabs: New Entry / All Entries / Report) is shown and entry CRUD queries no longer fail due to missing permission.",
+        "A logout control is available and returns the UI to the login page."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/features/partyPayments/reportExport/pdfExport.ts",
+          "path": "frontend/src/features/auth/authApi.ts",
           "operation": "create",
-          "description": "Implement a client-side PDF generation helper that accepts the selected party name, generation timestamp, and the already-filtered rows, then produces and downloads a PDF containing a table with Date, Payment, Next Payment Date, Comments. Use shadcn-ui composition patterns for any user-triggered UI integration elsewhere; Verify the component's usage instructions before implementing."
+          "description": "Create React Query hooks around existing backend capabilities needed for the auth flow (e.g., getCallerUserRole, getCallerUserProfile, registerUser, saveCallerUserProfile, isCallerAdmin). Ensure Unauthorized traps are handled gracefully using the existing safeErrorMessage helper. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-          "operation": "modify",
-          "description": "Add an \"Export PDF\" action to the Report view that is enabled only when a party is selected and filteredEntries has at least 1 row; otherwise keep it disabled and/or show a clear inline reason. Wire the action to call the PDF export helper using exactly the rows currently shown in the report table. Use existing shadcn/ui components (e.g., Button, Alert) for actions and messaging; Verify the component's usage instructions before implementing."
+          "path": "frontend/src/features/auth/AuthGate.tsx",
+          "operation": "create",
+          "description": "Create an AuthGate component that decides between: (1) LoginScreen when no Internet Identity identity is present, (2) RegistrationScreen when authenticated but role/profile indicates not yet registered/authorized, and (3) rendering children (the existing tab UI) when authorized. Use useInternetIdentity and useActor without modifying them; rely on authApi hooks for role/profile state. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/package.json",
-          "operation": "modify",
-          "description": "Add/ensure client-side PDF library dependencies needed for in-browser PDF generation (no server-side generation), and ensure the frontend build includes them."
-        }
-      ]
-    },
-    {
-      "id": "REQ-13",
-      "summary": "Add a print-friendly mode for the Report view that prints only the report content (title + table) cleanly.",
-      "acceptanceCriteria": [
-        "The Report view includes a \"Print\" action.",
-        "Using the Print action opens the browser print dialog (or prepares the page) and prints only the report content (party title + table), not the main app header/footer/tabs.",
-        "Printed output is readable on A4/Letter with sensible margins and table column wrapping/truncation for long comments."
-      ],
-      "file_operations": [
+          "path": "frontend/src/features/auth/LoginScreen.tsx",
+          "operation": "create",
+          "description": "Create a dedicated login screen that calls useInternetIdentity().login on user interaction, shows loading/error state, and does not render app tabs. Use existing shadcn-ui primitives already in the project (e.g., buttons/cards/alerts) to match existing UI patterns. Verify the component's usage instructions before implementing."
+        },
         {
-          "path": "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-          "operation": "modify",
-          "description": "Add a \"Print\" action that triggers browser printing for the current report, and structure the report content area with stable wrappers/classes so it can be targeted by print CSS. Use existing shadcn/ui Button for the action; Verify the component's usage instructions before implementing."
+          "path": "frontend/src/features/auth/RegistrationScreen.tsx",
+          "operation": "create",
+          "description": "Create a lightweight registration screen shown after II login when the caller is not yet an app user. Provide a primary action that triggers registerUser and (if needed) prompts for and saves a display name via saveCallerUserProfile. Show clear success/failure UI and refresh relevant React Query caches so the app transitions into the existing tabs automatically. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/auth/AccountSummaryBar.tsx",
+          "operation": "create",
+          "description": "Add a small account/logout UI element that can be displayed when authenticated (e.g., showing the caller’s saved profile name if available) and provides a logout button that calls useInternetIdentity().clear and clears the React Query cache. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Mark app navigation chrome (header, footer, and tab controls) with print-hiding classes/attributes so they are excluded from printed output while the Report tab content remains printable."
-        },
+          "description": "Wire the new AuthGate into the root UI so the existing tabbed experience is only shown when authenticated and registered/authorized. Integrate AccountSummaryBar into the existing header area for authenticated users, and ensure logout returns to the login screen. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Make the login experience biometric-friendly by relying on Internet Identity (passkeys/biometric unlock where available) and reflecting this in English UI copy.",
+      "acceptanceCriteria": [
+        "Login UI uses the existing Internet Identity login mechanism (no custom password storage).",
+        "User-facing text on the login screen explicitly indicates that device passkeys/biometrics may be used when supported (English text).",
+        "No backend changes are required specifically to process biometric data (no biometric templates are stored or transmitted by the app)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/auth/LoginScreen.tsx",
+          "operation": "modify",
+          "description": "Add explicit English copy indicating that sign-in uses Internet Identity and may use device passkeys/biometrics on supported devices (without implying the app stores/transmits biometric data). Keep the sign-in action calling the existing useInternetIdentity().login. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Apply a cohesive, performance-minded visual theme to the auth pages and new navigation elements without changing core product features.",
+      "acceptanceCriteria": [
+        "Login and registration screens use a cohesive theme (colors, typography, spacing) consistent with the rest of the app.",
+        "Theme avoids default-looking styling and does not rely on a blue/purple palette.",
+        "UI remains responsive and fast (no unnecessary heavy animations or large assets added for the auth screens)."
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Add @media print rules to hide navigation chrome and to format the report for printing (A4/Letter-friendly margins, table readability, and long-comment wrapping/truncation behavior). Ensure only report content prints."
-        }
-      ]
-    },
-    {
-      "id": "REQ-14",
-      "summary": "Add CSV export for filtered Report rows and for all entries in the All Entries view.",
-      "acceptanceCriteria": [
-        "Report view: when a party is selected and has records, a \"Export CSV\" action downloads a CSV containing the same filtered rows.",
-        "All Entries view: an \"Export CSV\" action downloads a CSV containing all entries currently loaded.",
-        "CSV headers are human-readable and include at least: Party Name, Phone Number, Address, PAN, Due Amount, Payment, Date, Next Payment Date, Comments, Entry Location.",
-        "CSV values preserve text exactly (do not lose leading zeros in phone numbers; export phone as text)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/features/partyPayments/reportExport/csvExport.ts",
-          "operation": "create",
-          "description": "Create a CSV export helper that accepts a list of entries plus optional party master/context data and downloads a CSV with the required human-readable headers. Ensure proper CSV escaping and force phone numbers to export as text (preserve leading zeros). Use shadcn-ui composition patterns where applicable in calling components; Verify the component's usage instructions before implementing."
+          "description": "Add minimal, reusable Tailwind/CSS utility patterns (using the existing OKLCH variable-based palette) to style auth layouts (e.g., consistent page padding, card containers, muted backgrounds) while avoiding blue/purple-focused styling and heavy visual effects. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
+          "path": "frontend/src/features/auth/LoginScreen.tsx",
           "operation": "modify",
-          "description": "Add an \"Export CSV\" action for the Report view that is enabled only when a party is selected and there is at least one filtered row; export exactly the same filteredEntries currently displayed. Use existing shadcn/ui components for actions and any inline disabled messaging; Verify the component's usage instructions before implementing."
+          "description": "Align layout/spacing/typography with the app’s existing look (header/body text hierarchy, container widths) and use existing shadcn-ui patterns present in the project for a cohesive appearance without adding heavy assets or animations. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx",
+          "path": "frontend/src/features/auth/RegistrationScreen.tsx",
           "operation": "modify",
-          "description": "Add an \"Export CSV\" action to export all entries currently loaded in the All Entries view (respecting the currently loaded dataset). Wire it to the shared CSV export helper and include the required headers/fields. Use existing shadcn/ui Button for the action; Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-15",
-      "summary": "Add client-side search, due-today filter, and sorting controls to the All Entries view without backend changes.",
-      "acceptanceCriteria": [
-        "All Entries view provides a text search that filters entries by Party Name (case-insensitive).",
-        "All Entries view provides a quick toggle/filter to show only entries with \"Due Today\" next payment date.",
-        "All Entries view supports sorting by Date (newest/oldest) and by Party Name (A–Z/Z–A) without requiring backend changes.",
-        "Filtering/sorting operates on the currently loaded dataset and does not break the existing refresh behavior."
-      ],
-      "file_operations": [
+          "description": "Apply the same cohesive theme as LoginScreen and ensure the registration UI is lightweight and responsive, with clear primary/secondary actions and fast perceived performance. Verify the component's usage instructions before implementing."
+        },
         {
-          "path": "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx",
+          "path": "frontend/src/features/auth/AccountSummaryBar.tsx",
           "operation": "modify",
-          "description": "Implement client-side controls and state for: (1) case-insensitive Party Name search, (2) a Due Today-only toggle using the existing isDueToday helper, and (3) sorting by Date and Party Name with ascending/descending directions. Apply filtering/sorting to the currently loaded entries dataset while keeping the existing refresh/refetch behavior intact. Compose existing shadcn/ui components (e.g., Input, Button, Badge, Table, and a simple selector control) rather than modifying any files under frontend/src/components/ui; Verify the component's usage instructions before implementing."
+          "description": "Style the authenticated account/logout control to match the existing header design (subtle, compact, consistent colors/typography) and avoid introducing new heavy UI behavior. Verify the component's usage instructions before implementing."
         }
       ]
     }

@@ -14,19 +14,40 @@ export interface PartyMasterRecord {
     phoneNumber: string;
     dueAmount: bigint;
 }
+export interface UserProfile {
+    name: string;
+}
 export interface PartyPaymentEntry {
-    totalWithTip: bigint;
     entryLocation: string;
-    tipAmount: bigint;
-    totalCost: bigint;
-    description: string;
-    numPeople: bigint;
-    costPerPerson: bigint;
-    tipPercent: bigint;
+    date: string;
+    address: string;
+    panNumber: string;
+    partyName: string;
+    comments: string;
+    phoneNumber: string;
+    nextPaymentDate: string;
+    payment: bigint;
+    dueAmount: bigint;
+}
+export enum UserRole {
+    admin = "admin",
+    user = "user",
+    guest = "guest"
 }
 export interface backendInterface {
-    createEntry(id: string, details: PartyPaymentEntry): Promise<void>;
+    assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    createEntry(id: string, entry: PartyPaymentEntry): Promise<void>;
+    deleteEntry(id: string): Promise<void>;
     getAllEntries(): Promise<Array<PartyPaymentEntry>>;
-    importPartyMasters(records: Array<[string, PartyMasterRecord]>): Promise<void>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
+    getCallerUserRole(): Promise<UserRole>;
+    getEntry(id: string): Promise<PartyPaymentEntry | null>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
+    isCallerAdmin(): Promise<boolean>;
     lookupPartyMaster(partyName: string): Promise<PartyMasterRecord | null>;
+    registerUser(): Promise<void>;
+    revokeUser(user: Principal): Promise<void>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    updateEntry(id: string, entry: PartyPaymentEntry): Promise<void>;
+    updatePartyMasters(records: Array<[string, PartyMasterRecord]>): Promise<void>;
 }

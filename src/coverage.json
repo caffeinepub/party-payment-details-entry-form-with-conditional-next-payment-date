@@ -1,84 +1,97 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T10:02:07.834Z",
+  "generatedAt": "2026-02-16T10:45:07.512Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 5,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-12",
-        "summary": "Add an export option in the Report view to generate and download a PDF of the currently selected party’s report (the same rows shown in the table).",
+        "id": "REQ-1",
+        "summary": "Implement a user account concept on the backend where an authenticated principal can be registered as an application user, and entry/profile APIs authorize based on that user permission.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Add admin-only backend APIs to manage user permissions/roles for principals (at minimum: grant and revoke the “user” permission; optionally list registered users).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Add a dedicated frontend login/unauthorized gating flow: if the user is not authenticated with Internet Identity, show a login screen; if authenticated but not registered/authorized yet, show a lightweight registration screen; otherwise show the existing app tabs.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/features/partyPayments/reportExport/pdfExport.ts",
-          "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-          "frontend/package.json"
+          "frontend/src/features/auth/authApi.ts",
+          "frontend/src/features/auth/AuthGate.tsx",
+          "frontend/src/features/auth/LoginScreen.tsx",
+          "frontend/src/features/auth/RegistrationScreen.tsx",
+          "frontend/src/features/auth/AccountSummaryBar.tsx",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/features/partyPayments/reportExport/pdfExport.ts",
-          "frontend/src/features/partyPayments/PartyPaymentReportView.tsx"
+          "frontend/src/features/auth/authApi.ts",
+          "frontend/src/features/auth/AuthGate.tsx",
+          "frontend/src/features/auth/LoginScreen.tsx",
+          "frontend/src/features/auth/RegistrationScreen.tsx",
+          "frontend/src/features/auth/AccountSummaryBar.tsx",
+          "frontend/src/App.tsx"
         ]
       },
       {
-        "id": "REQ-13",
-        "summary": "Add a print-friendly mode for the Report view so users can print the report cleanly from the browser (without app navigation chrome).",
+        "id": "REQ-4",
+        "summary": "Add “biometric” support to the login experience by using Internet Identity in a way that supports passkeys/biometric unlock on compatible devices, and reflect this in the UI copy.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/index.css"
+          "frontend/src/features/auth/LoginScreen.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/index.css"
+          "frontend/src/features/auth/LoginScreen.tsx"
         ]
       },
       {
-        "id": "REQ-14",
-        "summary": "Add CSV export for payment entries: (a) export the currently selected party’s report rows from the Report view, and (b) export all entries from the All Entries view.",
+        "id": "REQ-5",
+        "summary": "Apply a consistent, performance-minded visual theme to the new auth pages (login/registration) and any new navigation elements (e.g., logout/account summary) without changing the core product features.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/features/partyPayments/reportExport/csvExport.ts",
-          "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-          "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx"
+          "frontend/src/index.css",
+          "frontend/src/features/auth/LoginScreen.tsx",
+          "frontend/src/features/auth/RegistrationScreen.tsx",
+          "frontend/src/features/auth/AccountSummaryBar.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/features/partyPayments/reportExport/csvExport.ts",
-          "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-          "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx"
-        ]
-      },
-      {
-        "id": "REQ-15",
-        "summary": "Improve the All Entries view with basic client-side filtering and sorting to make large datasets easier to use.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx"
+          "frontend/src/features/auth/LoginScreen.tsx",
+          "frontend/src/features/auth/RegistrationScreen.tsx",
+          "frontend/src/features/auth/AccountSummaryBar.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
-    "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx",
-    "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-    "frontend/src/features/partyPayments/reportExport/csvExport.ts",
-    "frontend/src/features/partyPayments/reportExport/pdfExport.ts",
-    "frontend/src/index.css",
-    "frontend/src/jspdf.d.ts",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/features/auth/AccountSummaryBar.tsx",
+    "frontend/src/features/auth/AuthGate.tsx",
+    "frontend/src/features/auth/LoginScreen.tsx",
+    "frontend/src/features/auth/RegistrationScreen.tsx",
+    "frontend/src/features/auth/authApi.ts",
+    "frontend/src/features/partyPayments/partyPaymentsApi.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -6,47 +6,38 @@ import type { PartyPaymentEntry as BackendEntry, PartyMasterRecord } from '@/bac
 const ENTRIES_QUERY_KEY = ['partyPaymentEntries'];
 const PARTY_MASTERS_QUERY_KEY = ['partyMasters'];
 
-// Serialize frontend data to backend format
+// Convert frontend form data to backend entry format
 function serializeEntry(data: PartyPaymentFormData): BackendEntry {
   return {
-    description: JSON.stringify(data),
+    partyName: data.partyName,
+    address: data.address,
+    phoneNumber: data.phoneNumber,
+    panNumber: data.panNumber,
+    dueAmount: BigInt(Math.floor(parseFloat(data.dueAmount || '0') * 100)),
+    date: data.date,
+    payment: BigInt(Math.floor(parseFloat(data.payment || '0') * 100)),
+    nextPaymentDate: data.nextPaymentDate,
+    comments: data.comments,
     entryLocation: data.entryLocation || '',
-    totalCost: BigInt(0),
-    tipPercent: BigInt(0),
-    tipAmount: BigInt(0),
-    totalWithTip: BigInt(0),
-    costPerPerson: BigInt(0),
-    numPeople: BigInt(0),
   };
 }
 
-// Deserialize backend data to frontend format
-function deserializeEntry(backendEntry: BackendEntry, index: number): PartyPaymentEntry {
-  try {
-    const data = JSON.parse(backendEntry.description) as PartyPaymentFormData;
-    return {
-      ...data,
-      entryLocation: backendEntry.entryLocation || data.entryLocation || '',
-      id: `entry-${index}`,
-      createdAt: data.date,
-    };
-  } catch {
-    // Fallback for invalid data
-    return {
-      id: `entry-${index}`,
-      partyName: 'Unknown',
-      address: '',
-      phoneNumber: '',
-      panNumber: '',
-      dueAmount: '0',
-      date: new Date().toISOString().split('T')[0],
-      payment: '0',
-      nextPaymentDate: '',
-      comments: backendEntry.description,
-      entryLocation: backendEntry.entryLocation || '',
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-  }
+// Convert backend entry to frontend format
+function deserializeEntry(backendEntry: BackendEntry, id: string): PartyPaymentEntry {
+  return {
+    id,
+    partyName: backendEntry.partyName,
+    address: backendEntry.address,
+    phoneNumber: backendEntry.phoneNumber,
+    panNumber: backendEntry.panNumber,
+    dueAmount: (Number(backendEntry.dueAmount) / 100).toFixed(2),
+    date: backendEntry.date,
+    payment: (Number(backendEntry.payment) / 100).toFixed(2),
+    nextPaymentDate: backendEntry.nextPaymentDate,
+    comments: backendEntry.comments,
+    entryLocation: backendEntry.entryLocation,
+    createdAt: backendEntry.date,
+  };
 }
 
 function serializePartyMaster(master: PartyMaster): PartyMasterRecord {
@@ -77,7 +68,12 @@ export function useGetAllEntries() {
     queryFn: async () => {
       if (!actor) return [];
       const backendEntries = await actor.getAllEntries();
-      return backendEntries.map((entry, index) => deserializeEntry(entry, index));
+      // Backend now returns entries without IDs, so we need to generate stable IDs
+      // We'll use a combination of party name, date, and payment as a stable identifier
+      return backendEntries.map((entry) => {
+        const id = `${entry.partyName}-${entry.date}-${entry.payment}`.replace(/\s+/g, '-');
+        return deserializeEntry(entry, id);
+      });
     },
     enabled: !!actor && !isFetching,
   });
@@ -100,6 +96,37 @@ export function useCreateEntry() {
   });
 }
 
+export function useUpdateEntry() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: PartyPaymentFormData }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      const backendEntry = serializeEntry(data);
+      await actor.updateEntry(id, backendEntry);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ENTRIES_QUERY_KEY });
+    },
+  });
+}
+
+export function useDeleteEntry() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (!actor) throw new Error('Actor not initialized');
+      await actor.deleteEntry(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ENTRIES_QUERY_KEY });
+    },
+  });
+}
+
 export function useImportPartyMasters() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -111,7 +138,7 @@ export function useImportPartyMasters() {
         m.partyName,
         serializePartyMaster(m),
       ]);
-      await actor.importPartyMasters(records);
+      await actor.updatePartyMasters(records);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PARTY_MASTERS_QUERY_KEY });

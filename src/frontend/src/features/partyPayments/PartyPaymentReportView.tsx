@@ -1,8 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -11,36 +8,70 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertCircle, RefreshCw, FileText, Download, FileDown, Printer, Loader2 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Download, FileText, Printer, Loader2 } from 'lucide-react';
 import { useGetAllEntries } from './partyPaymentsApi';
-import { PartyNameCombobox } from './PartyNameCombobox';
-import { loadPartyMasters } from './partyMastersStorage';
+import { useActor } from '@/hooks/useActor';
 import { exportReportToPDF } from './reportExport/pdfExport';
 import { exportToCSV } from './reportExport/csvExport';
-import type { PartyMaster, PartyPaymentEntry } from './types';
+import { ActorConnectionNotice } from './components/ActorConnectionNotice';
+import type { PartyPaymentEntry } from './types';
 
 export function PartyPaymentReportView() {
-  const { data: entries, isLoading, isError, refetch, isFetching } = useGetAllEntries();
-  const [partyMasters, setPartyMasters] = useState<PartyMaster[]>([]);
+  const { actor, isFetching: isActorInitializing } = useActor();
+  const { data: entries } = useGetAllEntries();
   const [selectedParty, setSelectedParty] = useState<string>('');
   const [isExportingPDF, setIsExportingPDF] = useState(false);
 
-  // Load party masters from localStorage on mount
-  useEffect(() => {
-    const loaded = loadPartyMasters();
-    setPartyMasters(loaded);
-  }, []);
+  // Get unique party names - must be called before any conditional returns
+  const partyNames = useMemo(() => {
+    if (!entries) return [];
+    const names = new Set(entries.map((entry) => entry.partyName));
+    return Array.from(names).sort();
+  }, [entries]);
 
-  // Filter entries by selected party
+  // Filter entries by selected party - must be called before any conditional returns
   const filteredEntries = useMemo(() => {
-    if (!selectedParty || !entries) return [];
-    return entries.filter(
-      (entry) => entry.partyName.toLowerCase() === selectedParty.toLowerCase()
-    );
+    if (!entries || !selectedParty) return [];
+    return entries
+      .filter((entry) => entry.partyName === selectedParty)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [entries, selectedParty]);
 
-  const handlePartySelect = (party: PartyMaster | null) => {
-    // Party selection is handled by the combobox value change
+  // Now safe to do conditional returns after all hooks are called
+  if (!actor && isActorInitializing) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <ActorConnectionNotice message="Connecting to report service..." />
+      </div>
+    );
+  }
+
+  const formatCurrency = (amount: string) => {
+    const num = parseFloat(amount);
+    return isNaN(num) ? '0.00' : num.toFixed(2);
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   const handleExportPDF = async () => {
@@ -48,7 +79,7 @@ export function PartyPaymentReportView() {
 
     setIsExportingPDF(true);
     try {
-      const exportData = {
+      await exportReportToPDF({
         partyName: selectedParty,
         entries: filteredEntries.map((entry) => ({
           date: entry.date,
@@ -56,12 +87,10 @@ export function PartyPaymentReportView() {
           nextPaymentDate: entry.nextPaymentDate,
           comments: entry.comments,
         })),
-      };
-
-      await exportReportToPDF(exportData);
+      });
     } catch (error) {
       console.error('PDF export failed:', error);
-      alert('Failed to export PDF. Please try again.');
+      alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsExportingPDF(false);
     }
@@ -69,219 +98,173 @@ export function PartyPaymentReportView() {
 
   const handleExportCSV = () => {
     if (!selectedParty || filteredEntries.length === 0) return;
-
-    exportToCSV(filteredEntries, `payment-report-${selectedParty.replace(/\s+/g, '-').toLowerCase()}`);
+    exportToCSV(filteredEntries, `${selectedParty}-report`);
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '-';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
-  const formatCurrency = (value: string) => {
-    if (!value) return '₹0.00';
-    const num = parseFloat(value);
-    return isNaN(num) ? '₹0.00' : `₹${num.toFixed(2)}`;
-  };
-
-  const canExport = selectedParty && filteredEntries.length > 0;
+  const hasData = selectedParty && filteredEntries.length > 0;
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {isError && (
-        <Alert variant="destructive" className="mb-6 print:hidden">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Failed to load entries. Please try again.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <Card className="mb-6 print:hidden">
+    <div className="max-w-7xl mx-auto">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Party Payment Report
-          </CardTitle>
-          <CardDescription>
-            Select a party to view their payment history and details
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex-1 max-w-md">
-              <PartyNameCombobox
-                value={selectedParty}
-                onChange={setSelectedParty}
-                partyMasters={partyMasters}
-                onSelectParty={handlePartySelect}
-              />
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <CardTitle>Party Payment Report</CardTitle>
+              <CardDescription>
+                Generate detailed payment reports for individual parties
+              </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 print:hidden">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleExportPDF}
-                disabled={!canExport || isExportingPDF}
-                title={!canExport ? 'Select a party with records to export PDF' : 'Export as PDF'}
+                disabled={!hasData || isExportingPDF}
+                title="Export to PDF"
               >
                 {isExportingPDF ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
-                  <FileDown className="h-4 w-4 mr-2" />
+                  <FileText className="h-4 w-4 mr-2" />
                 )}
-                Export PDF
+                PDF
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleExportCSV}
-                disabled={!canExport}
-                title={!canExport ? 'Select a party with records to export CSV' : 'Export as CSV'}
+                disabled={!hasData}
+                title="Export to CSV"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Export CSV
+                CSV
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handlePrint}
-                disabled={!canExport}
-                title={!canExport ? 'Select a party with records to print' : 'Print report'}
+                disabled={!hasData}
+                title="Print report"
               >
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => refetch()}
-                disabled={isFetching}
-                title="Refresh entries"
-              >
-                <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-              </Button>
             </div>
           </div>
-          {!canExport && selectedParty && filteredEntries.length === 0 && (
-            <Alert className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                No records found for "{selectedParty}". Export options are disabled.
-              </AlertDescription>
-            </Alert>
+
+          <div className="mt-4 print:hidden">
+            <Label htmlFor="party-select" className="mb-2 block">
+              Select Party
+            </Label>
+            <Select value={selectedParty} onValueChange={setSelectedParty}>
+              <SelectTrigger id="party-select" className="max-w-md">
+                <SelectValue placeholder="Choose a party to view report..." />
+              </SelectTrigger>
+              <SelectContent>
+                {partyNames.map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          {!selectedParty && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                Select a party from the dropdown above to view their payment report.
+              </p>
+            </div>
+          )}
+
+          {selectedParty && filteredEntries.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                No payment records found for {selectedParty}.
+              </p>
+            </div>
+          )}
+
+          {hasData && (
+            <div id="report-content" className="space-y-6">
+              {/* Report Header - visible in print */}
+              <div className="hidden print:block mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  Payment Report: {selectedParty}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Generated on {new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </p>
+              </div>
+
+              {/* Summary Section */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardDescription>Total Payments</CardDescription>
+                    <CardTitle className="text-2xl">
+                      {filteredEntries.length}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardDescription>Total Amount Paid</CardDescription>
+                    <CardTitle className="text-2xl">
+                      ₹
+                      {filteredEntries
+                        .reduce((sum, entry) => sum + parseFloat(entry.payment || '0'), 0)
+                        .toFixed(2)}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardDescription>Total Due Amount</CardDescription>
+                    <CardTitle className="text-2xl">
+                      ₹
+                      {filteredEntries
+                        .reduce((sum, entry) => sum + parseFloat(entry.dueAmount || '0'), 0)
+                        .toFixed(2)}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              </div>
+
+              {/* Payment History Table */}
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Payment</TableHead>
+                      <TableHead>Next Payment Date</TableHead>
+                      <TableHead>Comments</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredEntries.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell>{formatDate(entry.date)}</TableCell>
+                        <TableCell>₹{formatCurrency(entry.payment)}</TableCell>
+                        <TableCell>{formatDate(entry.nextPaymentDate)}</TableCell>
+                        <TableCell>{entry.comments || '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
-
-      {isLoading ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </div>
-          </CardContent>
-        </Card>
-      ) : !selectedParty ? (
-        <Card className="print:hidden">
-          <CardContent className="pt-6">
-            <div className="text-center py-12">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-lg font-medium text-foreground mb-2">
-                Select a Party
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Choose a party name from the dropdown above to view their payment records
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : filteredEntries.length === 0 ? (
-        <Card className="print:hidden">
-          <CardContent className="pt-6">
-            <div className="text-center py-12">
-              <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-lg font-medium text-foreground mb-2">
-                No Records Found
-              </p>
-              <p className="text-sm text-muted-foreground">
-                No payment entries found for "{selectedParty}"
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card id="report-content" className="print:shadow-none print:border-0">
-          <CardHeader className="print:pb-4">
-            <CardTitle>Payment Records for {selectedParty}</CardTitle>
-            <CardDescription className="print:hidden">
-              {filteredEntries.length} record{filteredEntries.length !== 1 ? 's' : ''} found
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border print:border-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Next Payment Date</TableHead>
-                    <TableHead>Comments</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredEntries.map((entry) => (
-                    <TableRow key={entry.id}>
-                      <TableCell className="font-medium">
-                        {formatDate(entry.date)}
-                      </TableCell>
-                      <TableCell>
-                        <span className={entry.payment === '0' ? 'text-muted-foreground' : 'text-success font-medium'}>
-                          {formatCurrency(entry.payment)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {entry.nextPaymentDate ? (
-                          <span className="text-foreground">
-                            {formatDate(entry.nextPaymentDate)}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {entry.comments ? (
-                          <span className="text-sm text-foreground break-words">
-                            {entry.comments}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

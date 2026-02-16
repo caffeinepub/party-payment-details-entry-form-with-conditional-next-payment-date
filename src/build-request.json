@@ -1,96 +1,112 @@
 {
   "kind": "build_request",
-  "title": "Add export and usability enhancements (PDF/CSV export + search/filter) for Party Payment Manager",
+  "title": "Add user registration, role/permission management, login UI, and biometric-friendly authentication via Internet Identity",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-12",
-      "text": "Add an export option in the Report view to generate and download a PDF of the currently selected party’s report (the same rows shown in the table).",
-      "target": "frontend",
+      "id": "REQ-1",
+      "text": "Implement a user account concept on the backend where an authenticated principal can be registered as an application user, and entry/profile APIs authorize based on that user permission.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "Your update is live — want to add anything like exporting that report as a PDF next?",
-          "make best for anything you can add"
+          "create user and permission for this and login page and biomaetric"
         ]
       },
       "acceptanceCriteria": [
-        "When a party is selected and there is at least 1 filtered entry, the Report view shows an \"Export PDF\" action.",
-        "Clicking \"Export PDF\" downloads a PDF file that includes: selected party name, generation date/time, and a table of rows with Date, Payment, Next Payment Date, Comments.",
-        "If no party is selected or there are no records, the export action is disabled or shows a clear inline message explaining why export is unavailable.",
-        "The PDF content matches the currently displayed filtered entries (no unfiltered entries included)."
+        "Backend exposes a shared method that lets the authenticated caller register themselves as an app user (idempotent).",
+        "After registration, the caller has the required permission to call getAllEntries/createEntry/updateEntry/deleteEntry and getCallerUserProfile/saveCallerUserProfile without Unauthorized traps.",
+        "Unauthenticated/anonymous callers still cannot call protected entry/profile APIs and receive an Unauthorized trap."
       ]
     },
     {
-      "id": "REQ-13",
-      "text": "Add a print-friendly mode for the Report view so users can print the report cleanly from the browser (without app navigation chrome).",
-      "target": "frontend",
+      "id": "REQ-2",
+      "text": "Add admin-only backend APIs to manage user permissions/roles for principals (at minimum: grant and revoke the “user” permission; optionally list registered users).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "make best for anything you can add"
+          "create user and permission for this and login page and biomaetric"
         ]
       },
       "acceptanceCriteria": [
-        "The Report view includes a \"Print\" action.",
-        "Using the Print action opens the browser print dialog (or prepares the page) and prints only the report content (party title + table), not the main app header/footer/tabs.",
-        "Printed output is readable on A4/Letter with sensible margins and table column wrapping/truncation for long comments."
+        "Only admins can grant/revoke permissions for another principal; non-admin attempts trap with an Unauthorized message.",
+        "Admin can grant “user” permission to a specified principal and the change takes effect immediately for authorization checks.",
+        "Admin can revoke “user” permission from a specified principal and protected APIs deny access afterward."
       ]
     },
     {
-      "id": "REQ-14",
-      "text": "Add CSV export for payment entries: (a) export the currently selected party’s report rows from the Report view, and (b) export all entries from the All Entries view.",
+      "id": "REQ-3",
+      "text": "Add a dedicated frontend login/unauthorized gating flow: if the user is not authenticated with Internet Identity, show a login screen; if authenticated but not registered/authorized yet, show a lightweight registration screen; otherwise show the existing app tabs.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "make best for anything you can add"
+          "create user and permission for this and login page and biomaetric"
         ]
       },
       "acceptanceCriteria": [
-        "Report view: when a party is selected and has records, a \"Export CSV\" action downloads a CSV containing the same filtered rows.",
-        "All Entries view: an \"Export CSV\" action downloads a CSV containing all entries currently loaded.",
-        "CSV headers are human-readable and include at least: Party Name, Phone Number, Address, PAN, Due Amount, Payment, Date, Next Payment Date, Comments, Entry Location.",
-        "CSV values preserve text exactly (do not lose leading zeros in phone numbers; export phone as text)."
+        "When no Internet Identity session is present, the main app tabs are not shown; a login page is shown with a clear call-to-action to sign in.",
+        "After successful Internet Identity login, if backend authorization indicates the user is not yet an app user, the UI prompts for registration and can complete registration without manual URL tokens.",
+        "After registration completes successfully, the existing app UI (tabs: New Entry / All Entries / Report) is shown and entry CRUD queries no longer fail due to missing permission.",
+        "A logout control is available and returns the UI to the login page."
       ]
     },
     {
-      "id": "REQ-15",
-      "text": "Improve the All Entries view with basic client-side filtering and sorting to make large datasets easier to use.",
+      "id": "REQ-4",
+      "text": "Add “biometric” support to the login experience by using Internet Identity in a way that supports passkeys/biometric unlock on compatible devices, and reflect this in the UI copy.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "make best for anything you can add"
+          "create user and permission for this and login page and biomaetric"
         ]
       },
       "acceptanceCriteria": [
-        "All Entries view provides a text search that filters entries by Party Name (case-insensitive).",
-        "All Entries view provides a quick toggle/filter to show only entries with \"Due Today\" next payment date.",
-        "All Entries view supports sorting by Date (newest/oldest) and by Party Name (A–Z/Z–A) without requiring backend changes.",
-        "Filtering/sorting operates on the currently loaded dataset and does not break the existing refresh behavior."
+        "Login UI uses the existing Internet Identity login mechanism (no custom password storage).",
+        "User-facing text on the login screen explicitly indicates that device passkeys/biometrics may be used when supported (English text).",
+        "No backend changes are required specifically to process biometric data (no biometric templates are stored or transmitted by the app)."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Apply a consistent, performance-minded visual theme to the new auth pages (login/registration) and any new navigation elements (e.g., logout/account summary) without changing the core product features.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "create user and permission for this and login page and biomaetric"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Login and registration screens use a cohesive theme (colors, typography, spacing) consistent with the rest of the app.",
+        "Theme avoids default-looking styling and does not rely on a blue/purple palette.",
+        "UI remains responsive and fast (no unnecessary heavy animations or large assets added for the auth screens)."
       ]
     }
   ],
   "constraints": [
-    "Respect the existing single-actor Motoko backend architecture; do not introduce additional backend services.",
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files under frontend/src/components/ui; compose these components instead.",
-    "Keep all user-facing text in English.",
-    "Do not add third-party authentication beyond Internet Identity."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
+    "Do not edit files under frontend immutablePaths (compose existing hooks/components instead), specifically do not modify frontend/src/hooks/useInternetIdentity.ts(x) or frontend/src/hooks/useActor.ts.",
+    "Authentication must use Internet Identity (no third-party auth providers, no password-based auth, and no external databases).",
+    "Do not store or transmit biometric secrets/templates; biometric behavior must be provided by the user agent/Internet Identity/passkeys.",
+    "Use English for all user-facing UI text."
   ],
   "nonGoals": [
-    "Adding server-side PDF generation or any external PDF/export service.",
-    "Adding real-time features (WebSockets, push notifications) or email/SMS integrations.",
-    "Introducing new backend databases or non-Motoko backend code.",
-    "Implementing complex accounting features (invoicing, ledgers, reconciliation) beyond export/search/sort improvements."
+    "Implementing real-time features (e.g., WebSockets) related to auth or permissions.",
+    "Integrating external identity providers or social logins.",
+    "Building a custom biometric authentication system independent of Internet Identity.",
+    "Changing unrelated party payment features beyond what is necessary to gate access behind login/permissions."
   ],
   "imageRequirements": {
     "required": [],

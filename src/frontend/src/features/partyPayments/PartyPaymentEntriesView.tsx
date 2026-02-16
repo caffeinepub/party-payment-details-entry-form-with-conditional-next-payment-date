@@ -11,7 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, RefreshCw, Phone, Bell, Download, Search, ArrowUpDown } from 'lucide-react';
+import { AlertCircle, RefreshCw, Phone, Bell, Download, Search, ArrowUpDown, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -23,22 +23,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useGetAllEntries } from './partyPaymentsApi';
+import { useGetAllEntries, useDeleteEntry } from './partyPaymentsApi';
+import { useActor } from '@/hooks/useActor';
 import { isDueToday, formatPhoneForTel } from './dueToday';
 import { exportToCSV } from './reportExport/csvExport';
+import { ActorConnectionNotice } from './components/ActorConnectionNotice';
+import { safeErrorMessage } from './components/safeErrorMessage';
+import { PartyPaymentEntryEditDialog } from './components/PartyPaymentEntryEditDialog';
+import { PartyPaymentEntryDeleteConfirm } from './components/PartyPaymentEntryDeleteConfirm';
 import type { PartyPaymentEntry } from './types';
 
 type SortField = 'date' | 'partyName';
 type SortDirection = 'asc' | 'desc';
 
 export function PartyPaymentEntriesView() {
-  const { data: entries, isLoading, isError, refetch, isFetching } = useGetAllEntries();
+  const { actor, isFetching: isActorInitializing } = useActor();
+  const { data: entries, isLoading, isError, error, refetch, isFetching } = useGetAllEntries();
+  const deleteEntry = useDeleteEntry();
   const [searchQuery, setSearchQuery] = useState('');
   const [showDueTodayOnly, setShowDueTodayOnly] = useState(false);
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [editingEntry, setEditingEntry] = useState<PartyPaymentEntry | null>(null);
+  const [deletingEntry, setDeletingEntry] = useState<PartyPaymentEntry | null>(null);
 
-  // Filter and sort entries
+  // Filter and sort entries - must be called before any conditional returns
   const filteredAndSortedEntries = useMemo(() => {
     if (!entries) return [];
 
@@ -80,9 +89,37 @@ export function PartyPaymentEntriesView() {
     return entries.filter((entry) => isDueToday(entry.nextPaymentDate));
   }, [entries]);
 
+  // Now safe to do conditional returns after all hooks are called
+  if (!actor && isActorInitializing) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <ActorConnectionNotice message="Connecting to payment service..." />
+      </div>
+    );
+  }
+
   const handleExportCSV = () => {
     if (!filteredAndSortedEntries || filteredAndSortedEntries.length === 0) return;
     exportToCSV(filteredAndSortedEntries, 'all-payment-entries');
+  };
+
+  const handleEdit = (entry: PartyPaymentEntry) => {
+    setEditingEntry(entry);
+  };
+
+  const handleDelete = (entry: PartyPaymentEntry) => {
+    setDeletingEntry(entry);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingEntry) return;
+    
+    try {
+      await deleteEntry.mutateAsync(deletingEntry.id);
+      setDeletingEntry(null);
+    } catch (error) {
+      console.error('Failed to delete entry:', error);
+    }
   };
 
   const formatCurrency = (amount: string) => {
@@ -274,8 +311,18 @@ export function PartyPaymentEntriesView() {
           {isError && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Failed to load entries. Please try again.
+              <AlertTitle>Failed to Load Entries</AlertTitle>
+              <AlertDescription className="mt-2 space-y-3">
+                <p>{safeErrorMessage(error)}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+                  Retry
+                </Button>
               </AlertDescription>
             </Alert>
           )}
@@ -317,18 +364,19 @@ export function PartyPaymentEntriesView() {
                     <TableHead>Phone</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>PAN</TableHead>
-                    <TableHead className="text-right">Due Amount</TableHead>
-                    <TableHead className="text-right">Payment</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Due Amount</TableHead>
                     <TableHead>Next Payment</TableHead>
-                    <TableHead>Location</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Comments</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredAndSortedEntries.map((entry) => {
                     const status = getPaymentStatus(entry);
-                    const dueToday = isDueToday(entry.nextPaymentDate);
+                    const isOverdue = isDueToday(entry.nextPaymentDate);
 
                     return (
                       <TableRow key={entry.id}>
@@ -337,9 +385,8 @@ export function PartyPaymentEntriesView() {
                           {entry.phoneNumber ? (
                             <a
                               href={`tel:${formatPhoneForTel(entry.phoneNumber)}`}
-                              className="flex items-center gap-1 text-primary hover:underline"
+                              className="text-primary hover:underline"
                             >
-                              <Phone className="h-3 w-3" />
                               {entry.phoneNumber}
                             </a>
                           ) : (
@@ -347,31 +394,39 @@ export function PartyPaymentEntriesView() {
                           )}
                         </TableCell>
                         <TableCell>{truncateText(entry.address, 30)}</TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {entry.panNumber || '-'}
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          ₹{formatCurrency(entry.dueAmount)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          ₹{formatCurrency(entry.payment)}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {formatDate(entry.date)}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          <div className="flex items-center gap-2">
+                        <TableCell>{entry.panNumber || '-'}</TableCell>
+                        <TableCell>{formatDate(entry.date)}</TableCell>
+                        <TableCell>₹{formatCurrency(entry.payment)}</TableCell>
+                        <TableCell>₹{formatCurrency(entry.dueAmount)}</TableCell>
+                        <TableCell>
+                          <span className={isOverdue ? 'text-destructive font-semibold' : ''}>
                             {formatDate(entry.nextPaymentDate)}
-                            {dueToday && (
-                              <Badge variant="destructive" className="text-xs">
-                                Due
-                              </Badge>
-                            )}
-                          </div>
+                          </span>
                         </TableCell>
-                        <TableCell>{truncateText(entry.entryLocation, 25)}</TableCell>
                         <TableCell>
                           <Badge variant={status.variant}>{status.label}</Badge>
+                        </TableCell>
+                        <TableCell>{truncateText(entry.comments)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(entry)}
+                              title="Edit entry"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(entry)}
+                              title="Delete entry"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -382,6 +437,20 @@ export function PartyPaymentEntriesView() {
           )}
         </CardContent>
       </Card>
+
+      <PartyPaymentEntryEditDialog
+        entry={editingEntry}
+        open={!!editingEntry}
+        onOpenChange={(open) => !open && setEditingEntry(null)}
+      />
+
+      <PartyPaymentEntryDeleteConfirm
+        open={!!deletingEntry}
+        onOpenChange={(open) => !open && setDeletingEntry(null)}
+        onConfirm={confirmDelete}
+        partyName={deletingEntry?.partyName || ''}
+        isDeleting={deleteEntry.isPending}
+      />
     </div>
   );
 }

@@ -18,23 +18,41 @@ export interface PartyMasterRecord {
   'dueAmount' : bigint,
 }
 export interface PartyPaymentEntry {
-  'totalWithTip' : bigint,
   'entryLocation' : string,
-  'tipAmount' : bigint,
-  'totalCost' : bigint,
-  'description' : string,
-  'numPeople' : bigint,
-  'costPerPerson' : bigint,
-  'tipPercent' : bigint,
+  'date' : string,
+  'address' : string,
+  'panNumber' : string,
+  'partyName' : string,
+  'comments' : string,
+  'phoneNumber' : string,
+  'nextPaymentDate' : string,
+  'payment' : bigint,
+  'dueAmount' : bigint,
 }
+export interface UserProfile { 'name' : string }
+export type UserRole = { 'admin' : null } |
+  { 'user' : null } |
+  { 'guest' : null };
 export interface _SERVICE {
+  '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createEntry' : ActorMethod<[string, PartyPaymentEntry], undefined>,
+  'deleteEntry' : ActorMethod<[string], undefined>,
   'getAllEntries' : ActorMethod<[], Array<PartyPaymentEntry>>,
-  'importPartyMasters' : ActorMethod<
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getEntry' : ActorMethod<[string], [] | [PartyPaymentEntry]>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'isCallerAdmin' : ActorMethod<[], boolean>,
+  'lookupPartyMaster' : ActorMethod<[string], [] | [PartyMasterRecord]>,
+  'registerUser' : ActorMethod<[], undefined>,
+  'revokeUser' : ActorMethod<[Principal], undefined>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateEntry' : ActorMethod<[string, PartyPaymentEntry], undefined>,
+  'updatePartyMasters' : ActorMethod<
     [Array<[string, PartyMasterRecord]>],
     undefined
   >,
-  'lookupPartyMaster' : ActorMethod<[string], [] | [PartyMasterRecord]>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

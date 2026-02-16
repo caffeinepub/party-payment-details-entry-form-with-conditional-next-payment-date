@@ -8,16 +8,24 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const PartyPaymentEntry = IDL.Record({
-  'totalWithTip' : IDL.Int,
-  'entryLocation' : IDL.Text,
-  'tipAmount' : IDL.Int,
-  'totalCost' : IDL.Int,
-  'description' : IDL.Text,
-  'numPeople' : IDL.Int,
-  'costPerPerson' : IDL.Int,
-  'tipPercent' : IDL.Int,
+export const UserRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'user' : IDL.Null,
+  'guest' : IDL.Null,
 });
+export const PartyPaymentEntry = IDL.Record({
+  'entryLocation' : IDL.Text,
+  'date' : IDL.Text,
+  'address' : IDL.Text,
+  'panNumber' : IDL.Text,
+  'partyName' : IDL.Text,
+  'comments' : IDL.Text,
+  'phoneNumber' : IDL.Text,
+  'nextPaymentDate' : IDL.Text,
+  'payment' : IDL.Int,
+  'dueAmount' : IDL.Int,
+});
+export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 export const PartyMasterRecord = IDL.Record({
   'address' : IDL.Text,
   'panNumber' : IDL.Text,
@@ -27,33 +35,57 @@ export const PartyMasterRecord = IDL.Record({
 });
 
 export const idlService = IDL.Service({
+  '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createEntry' : IDL.Func([IDL.Text, PartyPaymentEntry], [], []),
+  'deleteEntry' : IDL.Func([IDL.Text], [], []),
   'getAllEntries' : IDL.Func([], [IDL.Vec(PartyPaymentEntry)], ['query']),
-  'importPartyMasters' : IDL.Func(
-      [IDL.Vec(IDL.Tuple(IDL.Text, PartyMasterRecord))],
-      [],
-      [],
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getEntry' : IDL.Func([IDL.Text], [IDL.Opt(PartyPaymentEntry)], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
     ),
+  'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'lookupPartyMaster' : IDL.Func(
       [IDL.Text],
       [IDL.Opt(PartyMasterRecord)],
       ['query'],
+    ),
+  'registerUser' : IDL.Func([], [], []),
+  'revokeUser' : IDL.Func([IDL.Principal], [], []),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'updateEntry' : IDL.Func([IDL.Text, PartyPaymentEntry], [], []),
+  'updatePartyMasters' : IDL.Func(
+      [IDL.Vec(IDL.Tuple(IDL.Text, PartyMasterRecord))],
+      [],
+      [],
     ),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  const PartyPaymentEntry = IDL.Record({
-    'totalWithTip' : IDL.Int,
-    'entryLocation' : IDL.Text,
-    'tipAmount' : IDL.Int,
-    'totalCost' : IDL.Int,
-    'description' : IDL.Text,
-    'numPeople' : IDL.Int,
-    'costPerPerson' : IDL.Int,
-    'tipPercent' : IDL.Int,
+  const UserRole = IDL.Variant({
+    'admin' : IDL.Null,
+    'user' : IDL.Null,
+    'guest' : IDL.Null,
   });
+  const PartyPaymentEntry = IDL.Record({
+    'entryLocation' : IDL.Text,
+    'date' : IDL.Text,
+    'address' : IDL.Text,
+    'panNumber' : IDL.Text,
+    'partyName' : IDL.Text,
+    'comments' : IDL.Text,
+    'phoneNumber' : IDL.Text,
+    'nextPaymentDate' : IDL.Text,
+    'payment' : IDL.Int,
+    'dueAmount' : IDL.Int,
+  });
+  const UserProfile = IDL.Record({ 'name' : IDL.Text });
   const PartyMasterRecord = IDL.Record({
     'address' : IDL.Text,
     'panNumber' : IDL.Text,
@@ -63,17 +95,33 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createEntry' : IDL.Func([IDL.Text, PartyPaymentEntry], [], []),
+    'deleteEntry' : IDL.Func([IDL.Text], [], []),
     'getAllEntries' : IDL.Func([], [IDL.Vec(PartyPaymentEntry)], ['query']),
-    'importPartyMasters' : IDL.Func(
-        [IDL.Vec(IDL.Tuple(IDL.Text, PartyMasterRecord))],
-        [],
-        [],
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getEntry' : IDL.Func([IDL.Text], [IDL.Opt(PartyPaymentEntry)], ['query']),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
       ),
+    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'lookupPartyMaster' : IDL.Func(
         [IDL.Text],
         [IDL.Opt(PartyMasterRecord)],
         ['query'],
+      ),
+    'registerUser' : IDL.Func([], [], []),
+    'revokeUser' : IDL.Func([IDL.Principal], [], []),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'updateEntry' : IDL.Func([IDL.Text, PartyPaymentEntry], [], []),
+    'updatePartyMasters' : IDL.Func(
+        [IDL.Vec(IDL.Tuple(IDL.Text, PartyMasterRecord))],
+        [],
+        [],
       ),
   });
 };

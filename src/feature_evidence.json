@@ -2,79 +2,66 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-an-export-option-in-the-report-view-to-generate-and-download-a-pdf-of-the-currently-selected-party-s-report-the-same-rows-shown-in-the-table",
-      "featureTitle": "Add an export option in the Report view to generate and download a PDF of the currently selected party’s report (the same rows shown in the table).",
-      "files": [
-        "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-        "frontend/src/features/partyPayments/reportExport/pdfExport.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-12"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-print-friendly-mode-for-the-report-view-so-users-can-print-the-report-cleanly-from-the-browser-without-app-navigation-chrome",
-      "featureTitle": "Add a print-friendly mode for the Report view so users can print the report cleanly from the browser (without app navigation chrome).",
+      "featureId": "feature-add-a-dedicated-frontend-login-unauthorized-gating-flow-if-the-user-is-not-authenticated-with-internet-identity-show-a-login-screen-if-authenticated-but-not-registered-authorized-yet-show-a-lightweight-registration-screen-otherwise-show-the-existing-app-tabs",
+      "featureTitle": "Add a dedicated frontend login/unauthorized gating flow: if the user is not authenticated with Internet Identity, show a login screen; if authenticated but not registered/authorized yet, show a lightweight registration screen; otherwise show the existing app tabs.",
       "files": [
         "frontend/src/App.tsx",
-        "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-        "frontend/src/index.css"
+        "frontend/src/features/auth/AccountSummaryBar.tsx",
+        "frontend/src/features/auth/AuthGate.tsx",
+        "frontend/src/features/auth/LoginScreen.tsx",
+        "frontend/src/features/auth/RegistrationScreen.tsx",
+        "frontend/src/features/auth/authApi.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-13"
+        "REQ-3"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-csv-export-for-payment-entries-a-export-the-currently-selected-party-s-report-rows-from-the-report-view-and-b-export-all-entries-from-the-all-entries-view",
-      "featureTitle": "Add CSV export for payment entries: (a) export the currently selected party’s report rows from the Report view, and (b) export all entries from the All Entries view.",
+      "featureId": "feature-add-biometric-support-to-the-login-experience-by-using-internet-identity-in-a-way-that-supports-passkeys-biometric-unlock-on-compatible-devices-and-reflect-this-in-the-ui-copy",
+      "featureTitle": "Add “biometric” support to the login experience by using Internet Identity in a way that supports passkeys/biometric unlock on compatible devices, and reflect this in the UI copy.",
       "files": [
-        "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx",
-        "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
-        "frontend/src/features/partyPayments/reportExport/csvExport.ts"
+        "frontend/src/features/auth/LoginScreen.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-14"
+        "REQ-4"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-improve-the-all-entries-view-with-basic-client-side-filtering-and-sorting-to-make-large-datasets-easier-to-use",
-      "featureTitle": "Improve the All Entries view with basic client-side filtering and sorting to make large datasets easier to use.",
+      "featureId": "feature-apply-a-consistent-performance-minded-visual-theme-to-the-new-auth-pages-login-registration-and-any-new-navigation-elements-e-g-logout-account-summary-without-changing-the-core-product-features",
+      "featureTitle": "Apply a consistent, performance-minded visual theme to the new auth pages (login/registration) and any new navigation elements (e.g., logout/account summary) without changing the core product features.",
       "files": [
-        "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx"
+        "frontend/src/features/auth/AccountSummaryBar.tsx",
+        "frontend/src/features/auth/LoginScreen.tsx",
+        "frontend/src/features/auth/RegistrationScreen.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-15"
+        "REQ-5"
       ],
       "confidence": "high"
     }

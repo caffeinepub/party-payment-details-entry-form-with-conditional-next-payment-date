@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Enhance Party Payment Manager reporting and usability with PDF/CSV export, print-friendly reports, and basic All Entries search/filter/sort.
+**Goal:** Add Internet Identity-based authentication with a simple registration step, plus backend user/role permission management, so only authorized users can access entries and profiles.
 
 **Planned changes:**
-- Add “Export PDF” in the Report view to download a PDF of the currently selected party’s currently filtered report rows (including party name, generation date/time, and table columns).
-- Add a “Print” action and print-friendly styling for the Report view so printing includes only the report content (title + table) with readable page formatting.
-- Add “Export CSV” actions: (a) in Report view for the selected party’s filtered rows, and (b) in All Entries view for all currently loaded entries, with human-readable headers and phone numbers preserved as text.
-- Improve All Entries with client-side text search (by Party Name), a “Due Today” filter toggle, and client-side sorting by Date and Party Name.
+- Backend: introduce an app-user concept tied to the authenticated principal, including an idempotent “register me” method and permission-based authorization for entry and profile APIs.
+- Backend: add admin-only APIs to grant/revoke at least the “user” permission for a principal (and optionally list registered users).
+- Frontend: add an auth gating flow that shows (1) login screen when not authenticated, (2) registration screen when authenticated but not yet authorized, and (3) the existing app tabs when authorized.
+- Frontend: add logout and small account/auth status UI elements as needed.
+- Frontend: update login UI copy to indicate passkeys/biometric unlock may be used via Internet Identity on supported devices, and apply a cohesive non-blue/non-purple theme to new auth pages.
 
-**User-visible outcome:** Users can export party reports to PDF/CSV, print clean reports from the browser, export all entries to CSV, and more easily find and organize entries in All Entries via search, “Due Today” filtering, and sorting.
+**User-visible outcome:** Users see a login page when signed out, can sign in with Internet Identity (with passkey/biometric-friendly messaging), register themselves when prompted, then access the existing app tabs; admins can manage user permission access, and users can log out back to the login screen.
