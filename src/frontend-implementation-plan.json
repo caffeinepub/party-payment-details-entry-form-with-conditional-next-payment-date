@@ -1,0 +1,104 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Export (PDF/CSV), print mode, and All Entries search/filter/sort for Party Payment Manager",
+  "requirements": [
+    {
+      "id": "REQ-12",
+      "summary": "Add PDF export in Report view for the currently selected party and currently displayed (filtered) rows.",
+      "acceptanceCriteria": [
+        "When a party is selected and there is at least 1 filtered entry, the Report view shows an \"Export PDF\" action.",
+        "Clicking \"Export PDF\" downloads a PDF file that includes: selected party name, generation date/time, and a table of rows with Date, Payment, Next Payment Date, Comments.",
+        "If no party is selected or there are no records, the export action is disabled or shows a clear inline message explaining why export is unavailable.",
+        "The PDF content matches the currently displayed filtered entries (no unfiltered entries included)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/partyPayments/reportExport/pdfExport.ts",
+          "operation": "create",
+          "description": "Implement a client-side PDF generation helper that accepts the selected party name, generation timestamp, and the already-filtered rows, then produces and downloads a PDF containing a table with Date, Payment, Next Payment Date, Comments. Use shadcn-ui composition patterns for any user-triggered UI integration elsewhere; Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
+          "operation": "modify",
+          "description": "Add an \"Export PDF\" action to the Report view that is enabled only when a party is selected and filteredEntries has at least 1 row; otherwise keep it disabled and/or show a clear inline reason. Wire the action to call the PDF export helper using exactly the rows currently shown in the report table. Use existing shadcn/ui components (e.g., Button, Alert) for actions and messaging; Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/package.json",
+          "operation": "modify",
+          "description": "Add/ensure client-side PDF library dependencies needed for in-browser PDF generation (no server-side generation), and ensure the frontend build includes them."
+        }
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "summary": "Add a print-friendly mode for the Report view that prints only the report content (title + table) cleanly.",
+      "acceptanceCriteria": [
+        "The Report view includes a \"Print\" action.",
+        "Using the Print action opens the browser print dialog (or prepares the page) and prints only the report content (party title + table), not the main app header/footer/tabs.",
+        "Printed output is readable on A4/Letter with sensible margins and table column wrapping/truncation for long comments."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
+          "operation": "modify",
+          "description": "Add a \"Print\" action that triggers browser printing for the current report, and structure the report content area with stable wrappers/classes so it can be targeted by print CSS. Use existing shadcn/ui Button for the action; Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Mark app navigation chrome (header, footer, and tab controls) with print-hiding classes/attributes so they are excluded from printed output while the Report tab content remains printable."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add @media print rules to hide navigation chrome and to format the report for printing (A4/Letter-friendly margins, table readability, and long-comment wrapping/truncation behavior). Ensure only report content prints."
+        }
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "summary": "Add CSV export for filtered Report rows and for all entries in the All Entries view.",
+      "acceptanceCriteria": [
+        "Report view: when a party is selected and has records, a \"Export CSV\" action downloads a CSV containing the same filtered rows.",
+        "All Entries view: an \"Export CSV\" action downloads a CSV containing all entries currently loaded.",
+        "CSV headers are human-readable and include at least: Party Name, Phone Number, Address, PAN, Due Amount, Payment, Date, Next Payment Date, Comments, Entry Location.",
+        "CSV values preserve text exactly (do not lose leading zeros in phone numbers; export phone as text)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/partyPayments/reportExport/csvExport.ts",
+          "operation": "create",
+          "description": "Create a CSV export helper that accepts a list of entries plus optional party master/context data and downloads a CSV with the required human-readable headers. Ensure proper CSV escaping and force phone numbers to export as text (preserve leading zeros). Use shadcn-ui composition patterns where applicable in calling components; Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
+          "operation": "modify",
+          "description": "Add an \"Export CSV\" action for the Report view that is enabled only when a party is selected and there is at least one filtered row; export exactly the same filteredEntries currently displayed. Use existing shadcn/ui components for actions and any inline disabled messaging; Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx",
+          "operation": "modify",
+          "description": "Add an \"Export CSV\" action to export all entries currently loaded in the All Entries view (respecting the currently loaded dataset). Wire it to the shared CSV export helper and include the required headers/fields. Use existing shadcn/ui Button for the action; Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "summary": "Add client-side search, due-today filter, and sorting controls to the All Entries view without backend changes.",
+      "acceptanceCriteria": [
+        "All Entries view provides a text search that filters entries by Party Name (case-insensitive).",
+        "All Entries view provides a quick toggle/filter to show only entries with \"Due Today\" next payment date.",
+        "All Entries view supports sorting by Date (newest/oldest) and by Party Name (A–Z/Z–A) without requiring backend changes.",
+        "Filtering/sorting operates on the currently loaded dataset and does not break the existing refresh behavior."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx",
+          "operation": "modify",
+          "description": "Implement client-side controls and state for: (1) case-insensitive Party Name search, (2) a Due Today-only toggle using the existing isDueToday helper, and (3) sorting by Date and Party Name with ascending/descending directions. Apply filtering/sorting to the currently loaded entries dataset while keeping the existing refresh/refetch behavior intact. Compose existing shadcn/ui components (e.g., Input, Button, Badge, Table, and a simple selector control) rather than modifying any files under frontend/src/components/ui; Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 9,
+  "summary": "Expand the party payment entry app to support party master data import/lookup (via Excel) with auto-fill on party selection, add an entry location field (including auto-capture), provide a report view to select a party and see payment amount/comment/next payment date, and provide reminders/actions when Next Payment Date is due (including a tap-to-call control for the party phone number).",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-create-a-party-payment-entry-form-ui-that-captures-party-name-address-phone-number-pan-number-due-amount-date-default-to-today-payment-next-payment-date-and-comments",
+      "title": "Create a Party Payment Entry form UI that captures: Party Name, Address, Phone Number, PAN Number, Due Amount, Date (default to today), Payment, Next Payment Date, and Comments.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-conditional-validation-for-next-payment-date-when-payment-is-0-prompt-the-user-and-require-next-payment-date-before-allowing-submission-when-payment-is-greater-than-0-next-payment-date-is-optional",
+      "title": "Implement conditional validation for Next Payment Date: when Payment is 0, prompt the user and require Next Payment Date before allowing submission; when Payment is greater than 0, Next Payment Date is optional.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-simple-entries-view-in-the-frontend-that-shows-a-table-list-of-saved-party-payment-entries-after-submission-including-party-name-due-amount-date-payment-next-payment-date-if-present-and-comments-truncated-if-long",
+      "title": "Add a simple entries view in the frontend that shows a table/list of saved Party Payment Entries after submission, including Party Name, Due Amount, Date, Payment, Next Payment Date (if present), and Comments (truncated if long).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-coherent-non-blue-non-purple-visual-theme-across-the-app-colors-typography-spacing-and-component-styling-suitable-for-a-finance-data-entry-tool",
+      "title": "Apply a coherent, non-blue/non-purple visual theme across the app (colors, typography, spacing, and component styling) suitable for a finance/data-entry tool.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-entry-location-field-to-the-party-payment-entry-form-and-persist-it-with-each-saved-payment-entry",
+      "title": "Add an \"Entry Location\" field to the Party Payment Entry form and persist it with each saved payment entry.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-support-importing-party-master-details-via-excel-upload-and-allow-selecting-a-party-name-to-auto-fill-party-name-phone-number-address-pan-number-and-due-amount-if-the-selected-party-is-not-found-allow-manual-entry-of-those-fields",
+      "title": "Support importing party master details via Excel upload, and allow selecting a party name to auto-fill Party Name, Phone Number, Address, PAN Number, and Due Amount; if the selected party is not found, allow manual entry of those fields.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-in-app-reminder-notification-when-any-saved-entry-has-next-payment-date-equal-to-today-and-provide-a-direct-tap-to-call-action-for-the-party-phone-number",
+      "title": "Add an in-app reminder/notification when any saved entry has Next Payment Date equal to today, and provide a direct tap-to-call action for the party phone number.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-report-view-that-lets-the-user-choose-a-party-name-and-then-displays-that-party-s-saved-entry-details-payment-amount-comments-and-next-payment-date-using-the-existing-saved-entries-data",
+      "title": "Add a new \"Report\" view that lets the user choose a party name and then displays that party’s saved entry details: Payment amount, Comments, and Next Payment Date (using the existing saved entries data).",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-auto-capture-and-auto-fill-the-entry-location-field-when-creating-a-new-payment-entry-while-still-allowing-manual-editing-if-auto-capture-fails-or-permission-is-denied",
+      "title": "Auto-capture and auto-fill the \"Entry Location\" field when creating a new payment entry, while still allowing manual editing if auto-capture fails or permission is denied.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-export-option-in-the-report-view-to-generate-and-download-a-pdf-of-the-currently-selected-party-s-report-the-same-rows-shown-in-the-table",
+      "title": "Add an export option in the Report view to generate and download a PDF of the currently selected party’s report (the same rows shown in the table).",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-print-friendly-mode-for-the-report-view-so-users-can-print-the-report-cleanly-from-the-browser-without-app-navigation-chrome",
+      "title": "Add a print-friendly mode for the Report view so users can print the report cleanly from the browser (without app navigation chrome).",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-csv-export-for-payment-entries-a-export-the-currently-selected-party-s-report-rows-from-the-report-view-and-b-export-all-entries-from-the-all-entries-view",
+      "title": "Add CSV export for payment entries: (a) export the currently selected party’s report rows from the Report view, and (b) export all entries from the All Entries view.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-all-entries-view-with-basic-client-side-filtering-and-sorting-to-make-large-datasets-easier-to-use",
+      "title": "Improve the All Entries view with basic client-side filtering and sorting to make large datasets easier to use.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Create data entry form with fields: party name, address, phone number, PAN number, due amount, date (default to today), payment, next payment date, and comment box",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Add conditional logic: if payment amount is 0, require/prompt for next payment date",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add backend support to persist Party Payment Entries and retrieve them for display: define a PartyPaymentEntry record type and expose canister methods to create a new entry and list saved entries.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Add an 'Entry Location' field to the payment entry form.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Support Excel upload/import of party details (party name, phone, address, PAN, due amount) and allow selecting a party name to auto-fill details; if party not found, allow entering details manually.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Add notification/reminder when Next Payment Date is today.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add a direct call action/icon to call the party phone number from the UI.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Update the backend Motoko canister to support storing and retrieving imported party master records for lookup/auto-fill.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Add a report view: user chooses a party and the app shows that party’s saved payment amount, comments, and next payment date (from saved entries).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Auto-capture/fill Entry Location (e.g., from device location) when creating a payment entry, instead of manual entry only.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Add an export option to generate/download the Report view as a PDF (e.g., for sharing/printing).",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Party payment details entry form with conditional next payment date",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

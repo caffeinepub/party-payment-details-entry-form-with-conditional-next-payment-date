@@ -1,2 +1,3 @@
-# party-payment-details-entry-form-with-conditional-next-payment-date
-Exported from Caffeine project: Party payment details entry form with conditional next payment date
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

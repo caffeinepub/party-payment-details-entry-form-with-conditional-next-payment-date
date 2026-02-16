@@ -1,0 +1,82 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-an-export-option-in-the-report-view-to-generate-and-download-a-pdf-of-the-currently-selected-party-s-report-the-same-rows-shown-in-the-table",
+      "featureTitle": "Add an export option in the Report view to generate and download a PDF of the currently selected party’s report (the same rows shown in the table).",
+      "files": [
+        "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
+        "frontend/src/features/partyPayments/reportExport/pdfExport.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-12"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-print-friendly-mode-for-the-report-view-so-users-can-print-the-report-cleanly-from-the-browser-without-app-navigation-chrome",
+      "featureTitle": "Add a print-friendly mode for the Report view so users can print the report cleanly from the browser (without app navigation chrome).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-13"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-csv-export-for-payment-entries-a-export-the-currently-selected-party-s-report-rows-from-the-report-view-and-b-export-all-entries-from-the-all-entries-view",
+      "featureTitle": "Add CSV export for payment entries: (a) export the currently selected party’s report rows from the Report view, and (b) export all entries from the All Entries view.",
+      "files": [
+        "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx",
+        "frontend/src/features/partyPayments/PartyPaymentReportView.tsx",
+        "frontend/src/features/partyPayments/reportExport/csvExport.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-14"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-improve-the-all-entries-view-with-basic-client-side-filtering-and-sorting-to-make-large-datasets-easier-to-use",
+      "featureTitle": "Improve the All Entries view with basic client-side filtering and sorting to make large datasets easier to use.",
+      "files": [
+        "frontend/src/features/partyPayments/PartyPaymentEntriesView.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-15"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

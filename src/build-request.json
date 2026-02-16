@@ -1,0 +1,109 @@
+{
+  "kind": "build_request",
+  "title": "Add export and usability enhancements (PDF/CSV export + search/filter) for Party Payment Manager",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-12",
+      "text": "Add an export option in the Report view to generate and download a PDF of the currently selected party’s report (the same rows shown in the table).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "Your update is live — want to add anything like exporting that report as a PDF next?",
+          "make best for anything you can add"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When a party is selected and there is at least 1 filtered entry, the Report view shows an \"Export PDF\" action.",
+        "Clicking \"Export PDF\" downloads a PDF file that includes: selected party name, generation date/time, and a table of rows with Date, Payment, Next Payment Date, Comments.",
+        "If no party is selected or there are no records, the export action is disabled or shows a clear inline message explaining why export is unavailable.",
+        "The PDF content matches the currently displayed filtered entries (no unfiltered entries included)."
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Add a print-friendly mode for the Report view so users can print the report cleanly from the browser (without app navigation chrome).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "make best for anything you can add"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Report view includes a \"Print\" action.",
+        "Using the Print action opens the browser print dialog (or prepares the page) and prints only the report content (party title + table), not the main app header/footer/tabs.",
+        "Printed output is readable on A4/Letter with sensible margins and table column wrapping/truncation for long comments."
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "text": "Add CSV export for payment entries: (a) export the currently selected party’s report rows from the Report view, and (b) export all entries from the All Entries view.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "make best for anything you can add"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Report view: when a party is selected and has records, a \"Export CSV\" action downloads a CSV containing the same filtered rows.",
+        "All Entries view: an \"Export CSV\" action downloads a CSV containing all entries currently loaded.",
+        "CSV headers are human-readable and include at least: Party Name, Phone Number, Address, PAN, Due Amount, Payment, Date, Next Payment Date, Comments, Entry Location.",
+        "CSV values preserve text exactly (do not lose leading zeros in phone numbers; export phone as text)."
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Improve the All Entries view with basic client-side filtering and sorting to make large datasets easier to use.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "make best for anything you can add"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All Entries view provides a text search that filters entries by Party Name (case-insensitive).",
+        "All Entries view provides a quick toggle/filter to show only entries with \"Due Today\" next payment date.",
+        "All Entries view supports sorting by Date (newest/oldest) and by Party Name (A–Z/Z–A) without requiring backend changes.",
+        "Filtering/sorting operates on the currently loaded dataset and does not break the existing refresh behavior."
+      ]
+    }
+  ],
+  "constraints": [
+    "Respect the existing single-actor Motoko backend architecture; do not introduce additional backend services.",
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files under frontend/src/components/ui; compose these components instead.",
+    "Keep all user-facing text in English.",
+    "Do not add third-party authentication beyond Internet Identity."
+  ],
+  "nonGoals": [
+    "Adding server-side PDF generation or any external PDF/export service.",
+    "Adding real-time features (WebSockets, push notifications) or email/SMS integrations.",
+    "Introducing new backend databases or non-Motoko backend code.",
+    "Implementing complex accounting features (invoicing, ledgers, reconciliation) beyond export/search/sort improvements."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}
